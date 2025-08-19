@@ -45,5 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<key>IOKit</key>
+	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Для отправки фото</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Для отправки фото с камеры</string>
 </dict>
 </plist>
