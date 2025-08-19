@@ -1,122 +1,208 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'data/models/chat_model.dart';
+import 'data/models/message_model.dart';
+import 'data/repositories/chat_repository.dart';
+import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'presentation/bloc/message_bloc/message_bloc.dart';
+import 'presentation/pages/chats_page.dart';
+import 'presentation/pages/chat_page.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Hive.initFlutter();
+  Hive.registerAdapter(ChatModelAdapter());
+  Hive.registerAdapter(MessageModelAdapter());
+  Hive.registerAdapter(MessageTypeAdapter());
+  
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ChatRepository chatRepository = MockChatRepository();
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => ChatBloc(chatRepository: chatRepository)
+            ..add(LoadChats()),
         ),
+      ],
+      child: MaterialApp(
+        title: 'Telegram Client',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          useMaterial3: true,
+        ),
+        home: const ChatsPage(),
+        routes: {
+          '/chat': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments as Map;
+            return BlocProvider(
+              create: (context) => MessageBloc(
+                chatRepository: chatRepository,
+                chatId: args['chatId'],
+              ),
+              child: ChatPage(
+                chatId: args['chatId'],
+                chatTitle: args['chatTitle'],
+              ),
+            );
+          },
+        },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+
+// Адаптеры для Hive
+class ChatModelAdapter extends TypeAdapter<ChatModel> {
+  @override
+  final int typeId = 0;
+
+  @override
+  ChatModel read(BinaryReader reader) {
+    return ChatModel(
+      id: reader.readInt(),
+      title: reader.readString(),
+      lastMessage: reader.readString(),
+      lastMessageDate: DateTime.parse(reader.readString()),
+      avatarUrl: reader.readString(),
+      unreadCount: reader.readInt(),
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, ChatModel obj) {
+    writer.writeInt(obj.id);
+    writer.writeString(obj.title);
+    writer.writeString(obj.lastMessage ?? '');
+    writer.writeString(obj.lastMessageDate?.toIso8601String() ?? '');
+    writer.writeString(obj.avatarUrl ?? '');
+    writer.writeInt(obj.unreadCount);
+  }
+}
+
+class MessageTypeAdapter extends TypeAdapter<MessageType> {
+  @override
+  final int typeId = 1;
+
+  @override
+  MessageType read(BinaryReader reader) {
+    return MessageType.values[reader.readInt()];
+  }
+
+  @override
+  void write(BinaryWriter writer, MessageType obj) {
+    writer.writeInt(obj.index);
+  }
+}
+
+class MessageModelAdapter extends TypeAdapter<MessageModel> {
+  @override
+  final int typeId = 2;
+
+  @override
+  MessageModel read(BinaryReader reader) {
+    return MessageModel(
+      id: reader.readInt(),
+      chatId: reader.readInt(),
+      text: reader.readString(),
+      type: MessageType.values[reader.readInt()],
+      date: DateTime.parse(reader.readString()),
+      isOutgoing: reader.readBool(),
+      mediaUrl: reader.readString(),
+      thumbnailUrl: reader.readString(),
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, MessageModel obj) {
+    writer.writeInt(obj.id);
+    writer.writeInt(obj.chatId);
+    writer.writeString(obj.text);
+    writer.writeInt(obj.type.index);
+    writer.writeString(obj.date.toIso8601String());
+    writer.writeBool(obj.isOutgoing);
+    writer.writeString(obj.mediaUrl ?? '');
+    writer.writeString(obj.thumbnailUrl ?? '');
+  }
+}
+
+// Mock репозиторий с примерами данных
+class MockChatRepository implements ChatRepository {
+  @override
+  Stream<List<ChatModel>> getChats() async* {
+    yield [
+      ChatModel(
+        id: 1,
+        title: 'Иван Иванов',
+        lastMessage: 'Привет! Как дела?',
+        lastMessageDate: DateTime.now(),
+        unreadCount: 3,
+      ),
+      ChatModel(
+        id: 2,
+        title: 'Группа Flutter',
+        lastMessage: 'Новый релиз Flutter 3.0',
+        lastMessageDate: DateTime.now().subtract(const Duration(hours: 2)),
+        unreadCount: 0,
+      ),
+    ];
+    await Future.delayed(const Duration(seconds: 2));
+  }
+
+  @override
+  Stream<List<MessageModel>> getMessages(int chatId) async* {
+    yield [
+      MessageModel(
+        id: 1,
+        chatId: chatId,
+        text: 'Привет! Как дела?',
+        type: MessageType.text,
+        date: DateTime.now().subtract(const Duration(minutes: 5)),
+        isOutgoing: false,
+      ),
+      MessageModel(
+        id: 2,
+        chatId: chatId,
+        text: 'Всё отлично!',
+        type: MessageType.text,
+        date: DateTime.now().subtract(const Duration(minutes: 3)),
+        isOutgoing: true,
+      ),
+      MessageModel(
+        id: 3,
+        chatId: chatId,
+        text: 'Посмотри это фото',
+        type: MessageType.image,
+        date: DateTime.now().subtract(const Duration(minutes: 1)),
+        isOutgoing: false,
+        mediaUrl: 'https://picsum.photos/200/300',
+      ),
+    ];
+  }
+
+  @override
+  Future<void> markAsRead(int chatId) async {
+    print('Чат $chatId прочитан');
+  }
+
+  @override
+  Future<void> sendMedia(int chatId, String filePath) async {
+    print('Отправка медиа в чат $chatId: $filePath');
+  }
+
+  @override
+  Future<void> sendMessage(int chatId, String text) async {
+    print('Отправка сообщения в чат $chatId: $text');
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 }
