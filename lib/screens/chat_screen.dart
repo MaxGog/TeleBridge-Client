@@ -14,6 +14,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Message> _messages = [];
   final TextEditingController _textController = TextEditingController();
   final List<Attachment> _attachments = [];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -27,9 +28,15 @@ class _ChatScreenState extends State<ChatScreen> {
         attachments: [],
       ),
       Message(
-        text: 'Всё отлично!',
+        text: 'Всё отлично! Как твои успехи с Flutter?',
         isMe: true,
         time: '12:31',
+        attachments: [],
+      ),
+      Message(
+        text: 'Отлично! Material 3 выглядит потрясающе 😊',
+        isMe: false,
+        time: '12:32',
         attachments: [],
       ),
     ]);
@@ -38,14 +45,25 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage() {
     if (_textController.text.isNotEmpty || _attachments.isNotEmpty) {
       setState(() {
-        _messages.add(Message(
+        _messages.insert(0, Message(
           text: _textController.text,
           isMe: true,
-          time: '${DateTime.now().hour}:${DateTime.now().minute}',
+          time: '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
           attachments: List.from(_attachments),
         ));
         _textController.clear();
         _attachments.clear();
+      });
+      
+      // Прокрутка к новому сообщению
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
       });
     }
   }
@@ -53,61 +71,179 @@ class _ChatScreenState extends State<ChatScreen> {
   void _addAttachment() {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SizedBox(
-        height: 150,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SafeArea(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.photo),
-              title: const Text('Фото'),
-              onTap: () {
-                /*setState(() {
-                  _attachments.add(Attachment(type: 'image', content: 'assets/avatars/defalut.png'));
-                });*/
-                Navigator.pop(context);
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.insert_drive_file),
-              title: const Text('Документ'),
-              onTap: () {
-                setState(() {
-                  _attachments.add(Attachment(type: 'document', content: 'document.pdf'));
-                });
-                Navigator.pop(context);
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'Добавить вложение',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildAttachmentOption(
+                  icon: Icons.photo,
+                  label: 'Фото',
+                  onTap: () {
+                    setState(() {
+                      _attachments.add(Attachment(type: 'image', content: 'assets/avatars/default.png'));
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                _buildAttachmentOption(
+                  icon: Icons.insert_drive_file,
+                  label: 'Документ',
+                  onTap: () {
+                    setState(() {
+                      _attachments.add(Attachment(type: 'document', content: 'document.pdf'));
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                _buildAttachmentOption(
+                  icon: Icons.mic,
+                  label: 'Аудио',
+                  onTap: () {
+                    setState(() {
+                      _attachments.add(Attachment(type: 'audio', content: 'audio.mp3'));
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildAttachmentOption({required IconData icon, required String label, required VoidCallback onTap}) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        IconButton(
+          icon: Icon(icon),
+          onPressed: onTap,
+          style: IconButton.styleFrom(
+            backgroundColor: theme.colorScheme.primaryContainer,
+            foregroundColor: theme.colorScheme.onPrimaryContainer,
+            padding: const EdgeInsets.all(16),
+          ),
+          iconSize: 28,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/avatarts/default.png'),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.primaryContainer,
+              ),
+              child: Icon(
+                Icons.person,
+                color: colorScheme.onPrimaryContainer,
+              ),
             ),
-            SizedBox(width: 10),
-            Text('Имя чата'),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Имя чата',
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  'в сети',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 1,
+        scrolledUnderElevation: 3,
         actions: [
-          IconButton(icon: const Icon(Icons.videocam), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.call), onPressed: () {}),
+          IconButton(
+            icon: Icon(Icons.videocam, color: colorScheme.onSurface),
+            onPressed: () {},
+            tooltip: 'Видеозвонок',
+          ),
+          IconButton(
+            icon: Icon(Icons.call, color: colorScheme.onSurface),
+            onPressed: () {},
+            tooltip: 'Голосовой звонок',
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {},
+            icon: Icon(Icons.more_vert, color: colorScheme.onSurface),
+            surfaceTintColor: colorScheme.surface,
             itemBuilder: (BuildContext context) {
-              return {'Настройки', 'Информация'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
+              return [
+                PopupMenuItem(
+                  value: 'Настройки',
+                  child: ListTile(
+                    leading: Icon(Icons.settings, color: colorScheme.onSurface),
+                    title: Text('Настройки чата'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'Информация',
+                  child: ListTile(
+                    leading: Icon(Icons.info, color: colorScheme.onSurface),
+                    title: Text('Информация о чате'),
+                  ),
+                ),
+              ];
             },
           ),
         ],
@@ -115,18 +251,25 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              reverse: true,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return MessageBubble(
-                  text: message.text,
-                  isMe: message.isMe,
-                  time: message.time,
-                  attachments: message.attachments,
-                );
-              },
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant.withOpacity(0.1),
+              ),
+              child: ListView.builder(
+                controller: _scrollController,
+                reverse: true,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  return MessageBubble(
+                    text: message.text,
+                    isMe: message.isMe,
+                    time: message.time,
+                    attachments: message.attachments,
+                  );
+                },
+              ),
             ),
           ),
           _buildInputField(),
@@ -136,93 +279,161 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputField() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(offset: Offset(0, 4), blurRadius: 32, color: Colors.grey)],
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outline.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Column(
         children: [
           if (_attachments.isNotEmpty)
             SizedBox(
-              height: 100,
+              height: 80,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: _attachments.length,
                 itemBuilder: (context, index) {
                   final attachment = _attachments[index];
-                  if (attachment.type == 'image') {
-                    return Stack(
+                  return Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    child: Stack(
                       children: [
-                        Image.network(attachment.content, width: 80, height: 80, fit: BoxFit.cover),
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: colorScheme.surfaceVariant,
+                          ),
+                          child: attachment.type == 'image'
+                              ? Icon(Icons.image, color: colorScheme.onSurfaceVariant)
+                              : Icon(Icons.insert_drive_file, color: colorScheme.onSurfaceVariant),
+                        ),
                         Positioned(
-                          top: 0,
-                          right: 0,
-                          child: IconButton(
-                            icon: const Icon(Icons.close, size: 16),
-                            onPressed: () {
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () {
                               setState(() {
                                 _attachments.removeAt(index);
                               });
                             },
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: colorScheme.errorContainer,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.close,
+                                size: 14,
+                                color: colorScheme.onErrorContainer,
+                              ),
+                            ),
                           ),
                         ),
                       ],
-                    );
-                  } else {
-                    return Container(
-                      margin: const EdgeInsets.all(4),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.insert_drive_file),
-                          Text(attachment.content.split('/').last),
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 16),
-                            onPressed: () {
-                              setState(() {
-                                _attachments.removeAt(index);
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                    ),
+                  );
                 },
               ),
             ),
+          if (_attachments.isNotEmpty) const SizedBox(height: 12),
           Row(
             children: [
-              IconButton(icon: const Icon(Icons.emoji_emotions), onPressed: () {}),
+              IconButton(
+                icon: Icon(Icons.emoji_emotions, color: colorScheme.onSurfaceVariant),
+                onPressed: () {},
+                tooltip: 'Эмодзи',
+              ),
               Expanded(
-                child: TextField(
-                  controller: _textController,
-                  decoration: const InputDecoration(
-                    hintText: 'Введите сообщение',
-                    border: InputBorder.none,
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextField(
+                          controller: _textController,
+                          decoration: InputDecoration(
+                            hintText: 'Введите сообщение...',
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                          ),
+                          style: TextStyle(color: colorScheme.onSurface),
+                          maxLines: null,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _sendMessage,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.attach_file, color: colorScheme.onSurfaceVariant),
+                        onPressed: _addAttachment,
+                        tooltip: 'Прикрепить файл',
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.camera_alt, color: colorScheme.onSurfaceVariant),
+                        onPressed: () {},
+                        tooltip: 'Камера',
+                      ),
+                    ],
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.attach_file),
-                onPressed: _addAttachment,
-              ),
-              IconButton(icon: const Icon(Icons.camera_alt), onPressed: () {}),
-              IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: _sendMessage,
+              const SizedBox(width: 8),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _textController.text.isNotEmpty || _attachments.isNotEmpty
+                      ? colorScheme.primary
+                      : colorScheme.surfaceVariant,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.send,
+                    color: _textController.text.isNotEmpty || _attachments.isNotEmpty
+                        ? colorScheme.onPrimary
+                        : colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  onPressed: _sendMessage,
+                  tooltip: 'Отправить',
+                ),
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 }
