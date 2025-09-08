@@ -4,15 +4,17 @@ import 'package:materialgramclient/screens/add_account_screen.dart';
 import '../models/account.dart';
 import '../models/chat_folder.dart';
 
+/// Экран со списком чатов - основной интерфейс приложения
+/// Отображает список чатов, панель управления аккаунтами и папками
 class ChatListScreen extends StatelessWidget {
-  final List<Account> accounts;
-  final Account currentAccount;
-  final Function(Account) onAccountChanged;
-  final Function(Account) onAddAccount;
-  final List<ChatFolder> folders;
-  final String currentFolderId;
-  final Function(String) onChangeFolder;
-  final Function(String) onAddFolder;
+  final List<Account> accounts; // Список всех доступных аккаунтов
+  final Account currentAccount; // Текущий выбранный аккаунт
+  final Function(Account) onAccountChanged; // Колбэк для смены аккаунта
+  final Function(Account) onAddAccount; // Колбэк для добавления аккаунта
+  final List<ChatFolder> folders; // Список папок для организации чатов
+  final String currentFolderId; // ID текущей выбранной папки
+  final Function(String) onChangeFolder; // Колбэк для смены папки
+  final Function(String) onAddFolder; // Колбэк для добавления папки
 
   const ChatListScreen({super.key, 
     required this.accounts,
@@ -45,16 +47,19 @@ class ChatListScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 3,
         actions: [
+          // Кнопка управления папками
           IconButton(
             icon: Icon(Icons.folder, color: colorScheme.onSurface),
             onPressed: () => Navigator.pushNamed(context, '/folders'),
             tooltip: 'Папки',
           ),
+          // Кнопка настроек приложения
           IconButton(
             icon: Icon(Icons.settings, color: colorScheme.onSurface),
             onPressed: () => Navigator.pushNamed(context, '/settings'),
             tooltip: 'Настройки',
           ),
+          // Кнопка добавления нового аккаунта
           IconButton(
             icon: Icon(Icons.add, color: colorScheme.onSurface),
             onPressed: () => Navigator.push(
@@ -65,9 +70,10 @@ class ChatListScreen extends StatelessWidget {
             ),
             tooltip: 'Добавить аккаунт',
           ),
+          // Выпадающее меню для выбора аккаунта (только если есть аккаунты)
           if (accounts.isNotEmpty)
             PopupMenuButton<Account>(
-              onSelected: onAccountChanged,
+              onSelected: onAccountChanged, // Обработчик выбора аккаунта
               icon: Icon(Icons.account_circle, color: colorScheme.onSurface),
               itemBuilder: (BuildContext context) {
                 return accounts.map((Account account) {
@@ -100,7 +106,7 @@ class ChatListScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Папки
+          // Горизонтальный список папок для фильтрации чатов
           if (folders.isNotEmpty)
             Container(
               height: 72,
@@ -119,7 +125,7 @@ class ChatListScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemBuilder: (context, index) {
                   final folder = folders[index];
-                  final isSelected = currentFolderId == folder.id;
+                  final isSelected = currentFolderId == folder.id; // Проверка выбранной папки
                   
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
@@ -135,7 +141,7 @@ class ChatListScreen extends StatelessWidget {
                       selected: isSelected,
                       onSelected: (selected) {
                         if (selected) {
-                          onChangeFolder(folder.id);
+                          onChangeFolder(folder.id); // Смена текущей папки
                         }
                       },
                       backgroundColor: colorScheme.surface,
@@ -160,22 +166,23 @@ class ChatListScreen extends StatelessWidget {
               ),
             ),
           
-          // Список чатов
+          // Основной список чатов
           Expanded(
             child: Material(
               color: colorScheme.surface,
               child: ListView.separated(
-                itemCount: 20,
+                itemCount: 20, // Заглушка - 20 тестовых чатов
                 separatorBuilder: (context, index) => Divider(
                   height: 1,
                   thickness: 1,
-                  indent: 72,
+                  indent: 72, // Отступ для выравнивания с аватарами
                   endIndent: 16,
                   color: colorScheme.outline.withOpacity(0.1),
                 ),
                 itemBuilder: (context, index) => InkWell(
                   onTap: () {
                     try {
+                      // Навигация к экрану чата (заглушка)
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -198,6 +205,7 @@ class ChatListScreen extends StatelessWidget {
                         ),
                       );
                     } catch (e) {
+                      // Обработка ошибок навигации
                       if (kDebugMode) {
                         print('Ошибка навигации: $e');
                       }
@@ -218,7 +226,7 @@ class ChatListScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
-                        // Аватар
+                        // Аватар чата
                         Container(
                           width: 56,
                           height: 56,
@@ -234,13 +242,13 @@ class ChatListScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                         
-                        // Информация о чате
+                        // Основная информация о чате
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Чат ${index + 1}',
+                                'Чат ${index + 1}', // Заглушка названия чата
                                 style: textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: colorScheme.onSurface,
@@ -250,7 +258,7 @@ class ChatListScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Последнее сообщение в чате ${index + 1}',
+                                'Последнее сообщение в чате ${index + 1}', // Заглушка последнего сообщения
                                 style: textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -261,17 +269,18 @@ class ChatListScreen extends StatelessWidget {
                           ),
                         ),
                         
-                        // Время и статус
+                        // Блок с временем и статусом сообщения
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '12:${index % 60}'.padLeft(2, '0'),
+                              '12:${index % 60}'.padLeft(2, '0'), // Заглушка времени
                               style: textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 4),
+                            // Индикатор статуса сообщения (только для каждого третьего чата)
                             if (index % 3 == 0)
                               Container(
                                 width: 16,
@@ -298,10 +307,10 @@ class ChatListScreen extends StatelessWidget {
         ],
       ),
       
-      // Плавающая кнопка для нового чата
+      // Плавающая кнопка для создания нового чата
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Действие для создания нового чата
+          // TODO: Реализовать функционал создания нового чата
         },
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
