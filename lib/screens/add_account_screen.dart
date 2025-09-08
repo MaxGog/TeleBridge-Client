@@ -48,9 +48,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                     widget.onAddAccount(Account(
                       token: _tokenController.text,
                       name: _nameController.text,
-                      //addedDate: DateTime(DateTime.now() as int),
                     ));
-                    Navigator.pop(context);
                   }
                 },
                 child: const Text('Добавить аккаунт'),

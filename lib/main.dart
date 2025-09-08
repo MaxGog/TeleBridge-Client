@@ -29,10 +29,42 @@ class _MaterialGramClientState extends State<MaterialGramClient> {
     'mediaAutoDownload': true,
   };
 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'MaterialGram',
+      theme: _getTheme(),
+      // УПРОЩЕННАЯ ЛОГИКА - убираем все сложные проверки
+      home: currentAccount == null
+          ? AddAccountScreen(onAddAccount: _addAccount)
+          : ChatListScreen(
+              accounts: accounts,
+              currentAccount: currentAccount!,
+              onAccountChanged: _switchAccount,
+              onAddAccount: _addAccount,
+              folders: folders,
+              currentFolderId: currentFolderId,
+              onChangeFolder: _changeFolder,
+              onAddFolder: _addFolder,
+            ),
+      routes: {
+        '/chat': (context) => const ChatScreen(),
+        '/settings': (context) => SettingsScreen(
+              settings: appSettings,
+              onSettingsChanged: _updateSettings,
+            ),
+        '/folders': (context) => FolderManagementScreen(
+              folders: folders,
+              onAddFolder: _addFolder,
+            ),
+      },
+    );
+  }
+
   void _addAccount(Account account) {
     setState(() {
       accounts.add(account);
-      currentAccount ??= account;
+      currentAccount = account;
     });
   }
 
@@ -62,37 +94,6 @@ class _MaterialGramClientState extends State<MaterialGramClient> {
     setState(() {
       appSettings = newSettings;
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MaterialGram',
-      theme: _getTheme(),
-      home: currentAccount == null
-          ? AddAccountScreen(onAddAccount: _addAccount)
-          : ChatListScreen(
-              accounts: accounts,
-              currentAccount: currentAccount!,
-              onAccountChanged: _switchAccount,
-              onAddAccount: _addAccount,
-              folders: folders,
-              currentFolderId: currentFolderId,
-              onChangeFolder: _changeFolder,
-              onAddFolder: _addFolder,
-            ),
-      routes: {
-        '/chat': (context) => ChatScreen(),
-        '/settings': (context) => SettingsScreen(
-              settings: appSettings,
-              onSettingsChanged: _updateSettings,
-            ),
-        '/folders': (context) => FolderManagementScreen(
-              folders: folders,
-              onAddFolder: _addFolder,
-            ),
-      },
-    );
   }
 
   ThemeData _getTheme() {
