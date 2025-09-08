@@ -9,7 +9,7 @@ class ChatInputField extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(offset: const Offset(0, 4), blurRadius: 32, color: Colors.grey)],
+        boxShadow: [BoxShadow(offset: Offset(0, 4), blurRadius: 32, color: Colors.grey)],
       ),
       child: Row(
         children: [

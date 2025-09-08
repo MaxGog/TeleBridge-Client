@@ -8,7 +8,7 @@ class ChatListScreen extends StatelessWidget {
   final Function(Account) onAccountChanged;
   final Function(Account) onAddAccount;
 
-  const ChatListScreen({
+  const ChatListScreen({super.key, 
     required this.accounts,
     required this.currentAccount,
     required this.onAccountChanged,
@@ -46,7 +46,7 @@ class ChatListScreen extends StatelessWidget {
       body: ListView.builder(
         itemCount: 20, // Заглушка для чатов
         itemBuilder: (context, index) => ListTile(
-          leading: CircleAvatar(),
+          leading: const CircleAvatar(),
           title: Text('Чат ${index + 1}'),
           subtitle: Text('Последнее сообщение в чате ${index + 1}'),
           trailing: Text('12:${index % 60}'),

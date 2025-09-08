@@ -4,7 +4,7 @@ import '../models/account.dart';
 class AddAccountScreen extends StatefulWidget {
   final Function(Account) onAddAccount;
 
-  AddAccountScreen({required this.onAddAccount});
+  const AddAccountScreen({super.key, required this.onAddAccount});
 
   @override
   _AddAccountScreenState createState() => _AddAccountScreenState();
