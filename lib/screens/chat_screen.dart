@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:materialgramclient/models/attachment.dart';
-import 'package:materialgramclient/models/message.dart';
+import 'package:materialgramclient/core/models/attachment.dart';
+import 'package:materialgramclient/core/models/message.dart';
+import 'package:materialgramclient/widgets/chat_app_bar.dart';
 import 'package:materialgramclient/widgets/message_bubble_widget.dart';
+import 'package:materialgramclient/widgets/chat_input_field.dart';
+import 'package:materialgramclient/widgets/attachment_bottom_sheet.dart';
 
 /// Экран чата - отображает историю сообщений и позволяет отправлять новые
 /// TODO: Необходимо интегрировать с Telegram API для реальной работы
@@ -86,98 +89,29 @@ class _ChatScreenState extends State<ChatScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Верхняя ручка bottom sheet
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'Добавить вложение',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildAttachmentOption(
-                  icon: Icons.photo,
-                  label: 'Фото',
-                  onTap: () {
-                    setState(() {
-                      // TODO: Реальный выбор фото из галереи
-                      _attachments.add(Attachment(type: 'image', content: 'assets/avatars/default.png'));
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-                _buildAttachmentOption(
-                  icon: Icons.insert_drive_file,
-                  label: 'Документ',
-                  onTap: () {
-                    setState(() {
-                      // TODO: Реальный выбор документа
-                      _attachments.add(Attachment(type: 'document', content: 'document.pdf'));
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-                _buildAttachmentOption(
-                  icon: Icons.mic,
-                  label: 'Аудио',
-                  onTap: () {
-                    setState(() {
-                      // TODO: Реальная запись аудио
-                      _attachments.add(Attachment(type: 'audio', content: 'audio.mp3'));
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
+      builder: (context) => AttachmentBottomSheet(
+        onPhotoSelected: () {
+          setState(() {
+            // TODO: Реальный выбор фото из галереи
+            _attachments.add(Attachment(type: 'image', content: 'assets/avatars/default.png'));
+          });
+          Navigator.pop(context);
+        },
+        onDocumentSelected: () {
+          setState(() {
+            // TODO: Реальный выбор документа
+            _attachments.add(Attachment(type: 'document', content: 'document.pdf'));
+          });
+          Navigator.pop(context);
+        },
+        onAudioSelected: () {
+          setState(() {
+            // TODO: Реальная запись аудио
+            _attachments.add(Attachment(type: 'audio', content: 'audio.mp3'));
+          });
+          Navigator.pop(context);
+        },
       ),
-    );
-  }
-
-  /// Строит кнопку опции вложения
-  Widget _buildAttachmentOption({required IconData icon, required String label, required VoidCallback onTap}) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        IconButton(
-          icon: Icon(icon),
-          onPressed: onTap,
-          style: IconButton.styleFrom(
-            backgroundColor: theme.colorScheme.primaryContainer,
-            foregroundColor: theme.colorScheme.onPrimaryContainer,
-            padding: const EdgeInsets.all(16),
-          ),
-          iconSize: 28,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall,
-        ),
-      ],
     );
   }
 
@@ -185,94 +119,15 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            // Аватар чата
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.primaryContainer,
-              ),
-              child: Icon(
-                Icons.person,
-                color: colorScheme.onPrimaryContainer,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Имя чата', // TODO: Получить реальное имя чата из Telegram
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                Text(
-                  'в сети', // TODO: Получить реальный статус из Telegram
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        elevation: 1,
-        scrolledUnderElevation: 3,
-        actions: [
-          // Кнопка видеозвонка (недоступна для ботов)
-          IconButton(
-            icon: Icon(Icons.videocam, color: colorScheme.onSurface),
-            onPressed: () {
-              // TODO: Показать уведомление о недоступности для ботов
-            },
-            tooltip: 'Видеозвонок',
-          ),
-          // Кнопка голосового звонка (недоступна для ботов)
-          IconButton(
-            icon: Icon(Icons.call, color: colorScheme.onSurface),
-            onPressed: () {
-              // TODO: Показать уведомление о недоступности для ботов
-            },
-            tooltip: 'Голосовой звонок',
-          ),
-          // Меню дополнительных опций
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              // TODO: Реализовать действия меню
-            },
-            icon: Icon(Icons.more_vert, color: colorScheme.onSurface),
-            surfaceTintColor: colorScheme.surface,
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(
-                  value: 'Настройки',
-                  child: ListTile(
-                    leading: Icon(Icons.settings, color: colorScheme.onSurface),
-                    title: Text('Настройки чата'),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'Информация',
-                  child: ListTile(
-                    leading: Icon(Icons.info, color: colorScheme.onSurface),
-                    title: Text('Информация о чате'),
-                  ),
-                ),
-              ];
-            },
-          ),
-        ],
+      appBar: ChatAppBar(
+        onVideoCall: () {
+          // TODO: Показать уведомление о недоступности для ботов
+        },
+        onVoiceCall: () {
+          // TODO: Показать уведомление о недоступности для ботов
+        },
       ),
       body: Column(
         children: [
@@ -300,167 +155,16 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           // Поле ввода сообщения
-          _buildInputField(),
-        ],
-      ),
-    );
-  }
-
-  /// Строит нижнюю панель ввода сообщения
-  Widget _buildInputField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outline.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Область предпросмотра вложений
-          if (_attachments.isNotEmpty)
-            SizedBox(
-              height: 80,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _attachments.length,
-                itemBuilder: (context, index) {
-                  final attachment = _attachments[index];
-                  return Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: colorScheme.surfaceVariant,
-                          ),
-                          child: attachment.type == 'image'
-                              ? Icon(Icons.image, color: colorScheme.onSurfaceVariant)
-                              : Icon(Icons.insert_drive_file, color: colorScheme.onSurfaceVariant),
-                        ),
-                        // Кнопка удаления вложения
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _attachments.removeAt(index);
-                              });
-                            },
-                            child: Container(
-                              width: 20,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: colorScheme.errorContainer,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.close,
-                                size: 14,
-                                color: colorScheme.onErrorContainer,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          if (_attachments.isNotEmpty) const SizedBox(height: 12),
-          // Основная строка ввода
-          Row(
-            children: [
-              // Кнопка эмодзи (TODO: Реализовать выбор эмодзи)
-              IconButton(
-                icon: Icon(Icons.emoji_emotions, color: colorScheme.onSurfaceVariant),
-                onPressed: () {},
-                tooltip: 'Эмодзи',
-              ),
-              // Текстовое поле
-              Expanded(
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 48),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextField(
-                          controller: _textController,
-                          decoration: InputDecoration(
-                            hintText: 'Введите сообщение...',
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                          ),
-                          style: TextStyle(color: colorScheme.onSurface),
-                          maxLines: null, // Многострочный ввод
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _sendMessage, // Отправка по Enter
-                        ),
-                      ),
-                      // Кнопка прикрепления файла
-                      IconButton(
-                        icon: Icon(Icons.attach_file, color: colorScheme.onSurfaceVariant),
-                        onPressed: _addAttachment,
-                        tooltip: 'Прикрепить файл',
-                      ),
-                      // Кнопка камеры (TODO: Реализовать съемку фото)
-                      IconButton(
-                        icon: Icon(Icons.camera_alt, color: colorScheme.onSurfaceVariant),
-                        onPressed: () {},
-                        tooltip: 'Камера',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Кнопка отправки
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _textController.text.isNotEmpty || _attachments.isNotEmpty
-                      ? colorScheme.primary // Активный цвет
-                      : colorScheme.surfaceVariant, // Неактивный цвет
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.send,
-                    color: _textController.text.isNotEmpty || _attachments.isNotEmpty
-                        ? colorScheme.onPrimary
-                        : colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                  onPressed: _sendMessage,
-                  tooltip: 'Отправить',
-                ),
-              ),
-            ],
+          ChatInputField(
+            textController: _textController,
+            attachments: _attachments,
+            onAttachmentAdded: _addAttachment,
+            onSendMessage: _sendMessage,
+            onAttachmentRemoved: (index) {
+              setState(() {
+                _attachments.removeAt(index);
+              });
+            },
           ),
         ],
       ),

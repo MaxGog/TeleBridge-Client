@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/account.dart';
+import '../core/models/account.dart';
 
 /// Экран для добавления нового аккаунта Telegram бота
 /// Позволяет пользователю ввести токен и имя для подключения бота

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/chat_folder.dart';
+import '../core/models/chat_folder.dart';
 
 /// Экран управления папками чатов
 /// Позволяет создавать, просматривать и удалять папки для организации чатов

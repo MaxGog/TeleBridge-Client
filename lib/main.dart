@@ -4,8 +4,8 @@ import 'screens/chat_screen.dart';
 import 'screens/add_account_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/folder_management_screen.dart';
-import 'models/account.dart';
-import 'models/chat_folder.dart';
+import 'core/models/account.dart';
+import 'core/models/chat_folder.dart';
 
 void main() => runApp(MaterialGramClient());
 

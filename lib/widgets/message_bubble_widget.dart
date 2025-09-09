@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:materialgramclient/models/attachment.dart';
+import 'package:materialgramclient/core/models/attachment.dart';
 
+/// Виджет пузыря сообщения
 class MessageBubble extends StatelessWidget {
   final String text;
   final bool isMe;

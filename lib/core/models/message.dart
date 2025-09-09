@@ -1,4 +1,4 @@
-import 'package:materialgramclient/models/attachment.dart';
+import 'package:materialgramclient/core/models/attachment.dart';
 
 class Message {
   final String text;

@@ -21,7 +21,7 @@ class TelegramApiClient {
 
   Future<Map<String, dynamic>> getUpdates({int? offset}) async {
     final data = offset != null ? {'offset': offset} : {};
-    final response = await _dio.post('${_baseUrl}$_token/getUpdates', data: data);
+    final response = await _dio.post('$_baseUrl$_token/getUpdates', data: data);
     return response.data;
   }
 

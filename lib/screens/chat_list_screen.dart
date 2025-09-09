@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:materialgramclient/screens/add_account_screen.dart';
-import '../models/account.dart';
-import '../models/chat_folder.dart';
+import '../core/models/account.dart';
+import '../core/models/chat_folder.dart';
 
 /// Экран со списком чатов - основной интерфейс приложения
 /// Отображает список чатов, панель управления аккаунтами и папками
