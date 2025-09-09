@@ -1,37 +1,103 @@
+# Имя приложения/пакета
 name: materialgramclient
-description: "A new Flutter project."
-publish_to: 'MaxGog'
+# Описание проекта - Telegram-клиент для портфолио
+description: "Flutter клиент для Telegram API с современным Material Design интерфейсом"
+
+# Настройки публикации (замените на свой аккаунт)
+publish_to: 'MaxGog'  # Измените на 'MaxGog' когда будете публиковать
+
+# Версия приложения (мажорная.минорная.патч+build)
 version: 1.0.0+1
 
+# Окружение и версия Dart SDK
 environment:
-  sdk: ^3.8.1
+  sdk: ^3.8.1  # Минимальная версия Dart SDK
 
+# Основные зависимости приложения
 dependencies:
+  # Flutter SDK
   flutter:
     sdk: flutter
+  
+  # State management - BLoC паттерн для управления состоянием
   flutter_bloc: ^8.1.3
+  
+  # Утилиты для сравнения объектов (используется в BLoC)
   equatable: ^2.0.5
+  
+  # HTTP-клиент для работы с Telegram API
   dio: ^5.3.2
+  
+  # Кэширование изображений из сети
   cached_network_image: ^3.2.3
+  
+  # Выбор файлов из устройства
   file_picker: ^5.5.0
+  
+  # Выбор изображений из галереи/камеры
   image_picker: ^1.0.4
+  
+  # Работа с путями файловой системы
   path_provider: ^2.1.1
+  
+  # Локальная база данных (для кэширования сообщений, настроек)
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  
+  # Интернационализация и форматирование дат/времени
   intl: ^0.18.1
+  
+  # Foreign Function Interface (может потребоваться для нативных вызовов)
   ffi: ^2.0.1
+  
+  # Определение MIME-типов файлов
   mime: ^1.0.4
+  
+  # Дополнительный HTTP-клиент (альтернатива Dio)
   http: ^0.13.6
+  
+  # Безопасное хранение токенов и чувствительных данных
   flutter_secure_storage: ^9.2.4
+  
+  # Локальные уведомления (для push-уведомлений сообщений)
   flutter_local_notifications: ^18.0.1
 
+# Зависимости для разработки
 dev_dependencies:
+  # Фреймворк для тестирования Flutter-приложений
   flutter_test:
     sdk: flutter
+  
+  # Линтер для соблюдения best practices
   flutter_lints: ^3.0.0
+  
+  # Генерация кода (для build_runner, json_serializable и т.д.)
   build_runner: ^2.4.6
 
+# Конфигурация Flutter
 flutter:
+  # Использование Material Design компонентов
   uses-material-design: true
+  
+  # Статические assets приложения
   assets:
-    - assets/avatars/default.png
+    - assets/avatars/default.png  # Аватар по умолчанию для пользователей
+    # Дополнительные assets можно добавить:
+    # - assets/icons/              # Иконки приложения
+    # - assets/sounds/             # Звуковые уведомления
+    # - assets/backgrounds/        # Фоновые изображения
+
+  # Дополнительные настройки (раскомментируйте при необходимости):
+  # fonts:
+  #   - family: TelegramFont
+  #     fonts:
+  #       - asset: assets/fonts/telegram_font.otf
+  
+  # shaders:
+  #   - assets/shaders/message_shader.glsl
+
+  # Настройки для разных платформ (Android/iOS/Web)
+  # android:
+  #   package: com.maxgog.materialgramclient
+  # ios:
+  #   bundleIdentifier: com.maxgog.materialgramclient
